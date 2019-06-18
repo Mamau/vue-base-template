@@ -2,6 +2,11 @@ import Vue from 'vue';
 import axios from 'axios';
 import store from './../store';
 
+import Trobber from '@/components/Trobber';
+
+const trobber = Vue.prototype.$Trobber = new Vue(Trobber).$mount();
+document.body.appendChild(trobber.$el);
+
 const baseUrl = `${process.env.VUE_APP_URL}${process.env.VUE_APP_API_PATH}`;
 const clientErrors = /^4[0-9]+$/;
 const serverErrors = /^5[0-9]+$/;
@@ -15,6 +20,7 @@ const instanceAxios = axios.create({
 });
 
 const createSetAuthInterceptor = config => {
+    trobber.start();
     let token = localStorage.getItem('token') || store.state.auth.token;
     if (token) {
         config.headers.Authorization = `Token ${token}`;
@@ -27,6 +33,7 @@ const createSetAuthInterceptor = config => {
 instanceAxios.interceptors.request.use(createSetAuthInterceptor);
 
 const createUpdateAuthInterceptor = () => error => {
+    trobber.finish();
     if (error.response.status === 401) {
         store.dispatch('logout').then(() => Vue.prototype.rootRouter.push({ name: 'login' }));
     } else if (error.response.status === 400) {
